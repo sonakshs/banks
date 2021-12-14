@@ -13,10 +13,11 @@ export default function BankList() {
   const [pageNo, setPageNo] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [category, selectCategory] = useState(null);
+  const [category, selectCategory] = useState("IFSC");
   const [query, setQuery] = useState("");
   const [allData, setAllData] = useState([]);
   const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [favorites, updateFavorites] = useLocalStorage("favorites");
   const favoriteIFSCs = favorites && favorites.map(fav => fav.ifsc);
 
@@ -26,22 +27,48 @@ export default function BankList() {
       .then(results => results.json())
       .then(data => {
         setAllData(data);
+        setFilteredData(data);
         setPageNo(1);
         setRowsPerPage(10);
-        setTotalPages(Math.ceil(data.length/rowsPerPage));
-        setData(data.slice((pageNo - 1) * rowsPerPage, (pageNo - 1) * rowsPerPage + rowsPerPage));
-        setLoading(false);
       });
   }, [selectedCity]);
 
   useEffect(() => {
-    if(allData.length){
+    if(filteredData.length){
       setLoading(true);
-      setTotalPages(Math.ceil(allData.length/rowsPerPage));
-      setData(allData.slice((pageNo - 1) * rowsPerPage, (pageNo - 1) * rowsPerPage + rowsPerPage));
+      setTotalPages(Math.ceil(filteredData.length/rowsPerPage));
+      setData(filteredData.slice((pageNo - 1) * rowsPerPage, (pageNo - 1) * rowsPerPage + rowsPerPage));
       setLoading(false);
     }
   }, [rowsPerPage, pageNo]);
+
+  const getCategoryField = (d, category) =>{
+    switch(category){
+      case "IFSC": return d.ifsc;
+      case "BANK": return d.bank_name;
+      case "BANK ID": return d.bank_id.toString();
+      case "BRANCH":
+      default: return d.branch;
+    }
+  }
+  
+  useEffect(() => {
+    setLoading(true);
+    const delayDebounceFn = setTimeout(async () => {
+      if(allData.length && query && query.length){
+        setPageNo(1);
+        setRowsPerPage(10);
+        setFilteredData(allData.filter(d => getCategoryField(d, category).includes(query.toUpperCase())))
+      }
+    }, 3000)
+    return () => clearTimeout(delayDebounceFn);
+  }, [query]);
+
+  useEffect(() => {
+    setData(filteredData.slice((pageNo - 1) * rowsPerPage, (pageNo - 1) * rowsPerPage + rowsPerPage));
+    setTotalPages(Math.ceil(filteredData.length/rowsPerPage));
+    setLoading(false);
+  }, [filteredData]);
 
   return (
     <div className="my-8 mx-4">

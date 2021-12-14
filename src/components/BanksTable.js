@@ -1,6 +1,6 @@
 import React from "react";
 
-const BanksTable = ({ data, updateFavorites, favoriteIFSCs }) => (
+const BanksTable = ({ data, updateFavorites, favoriteIFSCs }) => data.length === 0 ? <>No Data Found</> : (
     <table className="shadow-lg bg-white table-auto mx-2">
       <thead>
         <tr>
