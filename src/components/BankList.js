@@ -38,7 +38,6 @@ export default function BankList() {
       setLoading(true);
       setTotalPages(Math.ceil(filteredData.length/rowsPerPage));
       setData(filteredData.slice((pageNo - 1) * rowsPerPage, (pageNo - 1) * rowsPerPage + rowsPerPage));
-      setLoading(false);
     }
   }, [rowsPerPage, pageNo]);
 
